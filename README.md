@@ -4,6 +4,33 @@ An experimental **lens** layer over LZMA. The base is plain solid LZMA; lenses a
 
 This is a research prototype. It does not aim to replace 7-Zip, xz or zstd. The benchmarks below report wins and losses alike.
 
+## Overall assessment
+
+**What it is:** a research prototype that tests one idea — look at data as a *film* (frames, columns, versions) and transform it before an unmodified LZMA engine. Every result below was measured and verified bit-exact; losses are reported as plainly as wins.
+
+| Area | Verdict | Evidence |
+|---|---|---|
+| Versions of large disk images / VM snapshots | **Useful** — good ratio at constant, small RAM | 30 GB VM set: 17.0% of input with 220 MB RAM; zstd `--long` 33.0% (version beyond its 2 GB window) |
+| Same, when RAM is plentiful | **Loses on size** | lrzip `-U` is 40% smaller, but needs 11.2 GB RAM (~52×) |
+| Raw structured binary data (fixed-size records, telemetry, raw audio/images) | **Useful** | film lens −25% to −34% vs plain LZMA |
+| Mixed directories | **Small gain** | `--auto` −4% vs plain solid LZMA |
+| Already-compressed formats (PDF, docx, xlsx, jpg, zip) | **Neutral** — no gain, no meaningful loss | 0% on 62 MB, 250 MB and 832 MB of office documents |
+| Text, code, logs (BWT lens) | **Neutral / slight loss** | BWT alone +0.11%: it breaks cross-file matches LZMA finds in a solid stream |
+| Speed | **Weak point** | single-threaded LZMA ≈ 8–10 MB/s, CPU-bound (HDD vs NVMe only 5% apart) |
+| Robustness as a backup tool | **Not ready** | one stream for all versions, no per-version checksum, no resume, restore decodes the whole chain — see [TODO.md](TODO.md) |
+
+**Summary comparison — real VM disk, 3 × 10 GB:**
+
+| Tool | Archive | Ratio | Pack RAM | Note |
+|---|---|---|---|---|
+| zstd -19 --long=31 | 9.90 GiB | 33.0% | 3.4 GB | previous version is beyond the 2 GB window |
+| **lzfilm `snap -p 6 --motion`** | **5.11 GiB** | **17.0%** | **220 MB** | constant RAM regardless of image size |
+| lrzip -U -L 9 | 3.04 GiB | 10.6% | 11.2 GB | best ratio, RAM proportional to the data |
+
+In one sentence: **lzfilm is worth it for versioned large images where RAM is limited; it is not a better general-purpose compressor, and not yet a production backup tool.**
+
+## Lenses
+
 | Switch | Lens | Meant for |
 |---|---|---|
 | (none) | base: plain solid LZMA | reference |

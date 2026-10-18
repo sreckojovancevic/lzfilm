@@ -18,7 +18,8 @@ LZMA's encoder (BT4 match finder) has two parts:
 
 ## Benchmarks pending
 
-- [ ] `lrzip -U -L 9` on the real VM disk set (3 × 10 GB), WSL, same SATA SSD as the chain run — size, time, RAM.
+- [x] `lrzip -U -L 9` on the real VM disk set: 3.04 GiB, 11.2 GB RAM — 40% smaller than the chain at ~52× the RAM.
+- [ ] Chain with `-p 9`, and a stronger v0 (long-range dedup inside the first version), to see how much of the lrzip gap closes at bounded RAM.
 - [ ] `borg` (compression `lzma,6`) on the same v0/v1/v2 — the real competitor for versioned backups (content-defined dedup across the whole history).
 
 ## Engine (before any GUI)
